@@ -26,9 +26,12 @@ void enableRawMode(void) {
      * ECHO features enable program to print each key that are pressed
      * the code we write to disable ECHO
      * the tilde (~) is a bitwise NOT OPERATOR
-     * using ICON flag allow use to turn off canonical mode 
+     * using ICON flag allow us to turn off canonical mode 
+     * using ISIG flag allow us to turn off `ctrl-c` and `ctrl-z` signal
+     * `ctrl-c` sends a SIGNINT signal to the current process which causes it to terminate,
+     * `ctrl-z` sends a SIGSTP signal to the current process which causes it to suspend.
     */
-    raw.c_lflag &= ~(ECHO | ICANON);
+    raw.c_lflag &= ~(ECHO | ICANON | ISIG);
 
     /*
      * tcsetattr() method is a POSIX system call that sets terminal attributes/parameters
