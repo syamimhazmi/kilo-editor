@@ -23,6 +23,12 @@ void enableRawMode(void) {
   struct termios raw = origin_termios;
 
   /**
+   * adding BRKINT, INPCK, ISTRIP, and CS8 was considered (by someone) to be
+   * part of enabling “raw mode”, so we carry on the tradition (of whoever that
+   * someone was) in our program.
+   */
+
+  /**
    * By default, Ctrl-S and Ctrl-Q are used for software flow control.
    * Ctrl-S stops data from being transmitted to the terminal until you press
    * Ctrl-Q. IXON comes from <termios.h>. The I stands for “input flag” (which
@@ -32,8 +38,13 @@ void enableRawMode(void) {
    * turning off ctrl-m since it's being read as 10, when it should be 13.
    * ICRNL comes from <termios.h>. The I stands for “input flag”, CR stands for
    * “carriage return”, and NL stands for “new line”.
+   * When BRKINT is turned on, a break condition will cause a SIGINT signal to
+   * be sent to the program, like pressing Ctrl-C. INPCK enables parity
+   * checking, which doesn’t seem to apply to modern terminal emulators. ISTRIP
+   * causes the 8th bit of each input byte to be stripped, meaning it will set
+   * it to 0. This is probably already turned off.
    */
-  raw.c_iflag &= ~(ICRNL | IXON);
+  raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
 
   /**
    * It turns out that the terminal does a similar translation on the output
@@ -53,6 +64,14 @@ void enableRawMode(void) {
    * "\n" in printf method.
    */
   raw.c_oflag &= ~(OPOST);
+
+  /**
+   * CS8 is not a flag, it is a bit mask with multiple bits, which we set using
+   * the bitwise-OR (|) operator unlike all the flags we are turning off. It
+   * sets the character size (CS) to 8 bits per byte. On my system, it’s already
+   * set that way.
+   */
+  raw.c_cflag |= (CS8);
 
   /*
    * ECHO features enable program to print each key that are pressed
