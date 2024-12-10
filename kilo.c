@@ -34,6 +34,26 @@ void enableRawMode(void) {
    * “carriage return”, and NL stands for “new line”.
    */
   raw.c_iflag &= ~(ICRNL | IXON);
+
+  /**
+   * It turns out that the terminal does a similar translation on the output
+   * side. It translates each newline ("\n") we print into a carriage return
+   * followed by a newline ("\r\n").
+   * The terminal requires both of these characters in order to start a new line
+   * of text. The carriage return moves the cursor back to the beginning of the
+   * current line, and the newline moves the cursor down a line, scrolling the
+   * screen if necessary.
+   * To turn off all ouput processing features, we need to add OPOST flag.
+   * O means it’s an output flag, and I assume POST stands for “post-processing
+   * of output”.
+   * If we run the program now, we’ll see that the newline characters we’re
+   * printing are only moving the cursor down, and not to the left side of the
+   * screen.
+   * Since we want to print to new line we need to use "\r\n" instead of using
+   * "\n" in printf method.
+   */
+  raw.c_oflag &= ~(OPOST);
+
   /*
    * ECHO features enable program to print each key that are pressed
    * the code we write to disable ECHO
@@ -77,9 +97,9 @@ int main(void) {
      * is also a control character. ASCII code 32-126 are all printable.
      */
     if (iscntrl(c)) {
-      printf("%d\n", c);
+      printf("%d\r\n", c);
     } else {
-      printf("%d ('%c')\n", c, c);
+      printf("%d ('%c')\r\n", c, c);
     }
   }
   return 0;
