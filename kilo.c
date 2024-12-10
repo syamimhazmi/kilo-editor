@@ -40,8 +40,10 @@ void enableRawMode(void) {
    * `ctrl-c` sends a SIGNINT signal to the current process which causes it to
    * terminate, `ctrl-z` sends a SIGSTP signal to the current process which
    * causes it to suspend.
+   * Turning off ctrl-v by adding IEXTEN flag. This also turning off ctrl-o in
+   * macOS. Ctrl-V can now be read as a 22 byte, and Ctrl-O as a 15 byte.
    */
-  raw.c_lflag &= ~(ECHO | ICANON | ISIG);
+  raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
 
   /*
    * tcsetattr() method is a POSIX system call that sets terminal
