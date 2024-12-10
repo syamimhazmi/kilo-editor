@@ -29,8 +29,11 @@ void enableRawMode(void) {
    * it is, unlike the other I flags we’ve seen so far) and XON comes from the
    * names of the two control characters that Ctrl-S and Ctrl-Q produce: XOFF to
    * pause transmission and XON to resume transmission.
+   * turning off ctrl-m since it's being read as 10, when it should be 13.
+   * ICRNL comes from <termios.h>. The I stands for “input flag”, CR stands for
+   * “carriage return”, and NL stands for “new line”.
    */
-  raw.c_iflag &= ~(IXON);
+  raw.c_iflag &= ~(ICRNL | IXON);
   /*
    * ECHO features enable program to print each key that are pressed
    * the code we write to disable ECHO
