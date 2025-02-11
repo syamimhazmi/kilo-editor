@@ -10,7 +10,11 @@
 #define CTRL_KEY(k) ((k) & 0x1f)
 
 /*** data ***/
-struct termios origin_termios;
+struct editorConfig {
+  struct termios origin_termios;
+};
+
+struct editorConfig E;
 
 /*** terminal ***/
 void die(const char *s) {
@@ -22,13 +26,13 @@ void die(const char *s) {
 }
 
 void disableRawMode(void) {
-  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &origin_termios) == -1)
+  if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &E.origin_termios) == -1)
     die("tcsetattr");
 }
 
 void enableRawMode(void) {
   /* tcgetattr() is used to read current attribute into a struct */
-  if (tcgetattr(STDIN_FILENO, &origin_termios) == -1)
+  if (tcgetattr(STDIN_FILENO, &E.origin_termios) == -1)
     die("tcgetattr");
 
   /*
@@ -37,7 +41,7 @@ void enableRawMode(void) {
    */
   atexit(disableRawMode);
 
-  struct termios raw = origin_termios;
+  struct termios raw = E.origin_termios;
 
   /**
    * adding BRKINT, INPCK, ISTRIP, and CS8 was considered (by someone) to be
