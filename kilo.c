@@ -153,6 +153,9 @@ char editorReadKey(void) {
   return c;
 }
 
+/*** output ***/
+void editorRefreshScreen(void) { write(STDOUT_FILENO, "\x1b[2j", 4); }
+
 /*** input ***/
 void editorProcessKeypress(void) {
   char c = editorReadKey();
@@ -174,6 +177,8 @@ int main(void) {
    * here we add when user press q, it will exit the program
    */
   while (1) {
+    editorRefreshScreen();
+
     editorProcessKeypress();
   }
   return 0;
