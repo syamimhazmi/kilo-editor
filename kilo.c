@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -11,6 +12,8 @@
 
 /*** data ***/
 struct editorConfig {
+  int screenrows;
+  int screencols;
   struct termios origin_termios;
 };
 
@@ -160,10 +163,36 @@ char editorReadKey(void) {
   return c;
 }
 
+int getWindowSize(int *rows, int *cols) {
+  struct winsize ws;
+
+  /*
+   * On success, ioctl() will place the number of columns wide and the number of
+   * rows high the terminal is into the given winsize struct.
+   *
+   * On failure, ioctl() returns -1. We also check to make sure the values it
+   * gave back weren’t 0, because apparently that’s a possible erroneous
+   * outcome.
+   *
+   * If ioctl() failed in either way, we have getWindowSize() report failure by
+   * returning -1.
+   *
+   * If it succeeded, we pass the values back by setting the int
+   * references that were passed to the function.
+   */
+  if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
+    return -1;
+  } else {
+    *cols = ws.ws_col;
+    *rows = ws.ws_row;
+    return 0;
+  }
+}
+
 /*** output ***/
 void editorDrawRows(void) {
   int y;
-  for (y = 0; y < 24; y++) {
+  for (y = 0; y < E.screenrows; y++) {
     write(STDOUT_FILENO, "~\r\n", 3);
   }
 }
@@ -191,8 +220,14 @@ void editorProcessKeypress(void) {
 }
 
 /*** init ***/
+void initEditor(void) {
+  if (getWindowSize(&E.screenrows, &E.screencols) == -1)
+    die("getWindowSize");
+}
+
 int main(void) {
   enableRawMode();
+  initEditor();
 
   /**
    * read method enable use to read one byte from standard input
