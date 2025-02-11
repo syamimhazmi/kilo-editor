@@ -141,6 +141,29 @@ void enableRawMode(void) {
     die("tcsetattr");
 }
 
+char editorReadKey(void) {
+  int nread;
+  char c;
+
+  while ((nread = read(STDIN_FILENO, &c, 1)) == 1) {
+    if (nread == -1 && errno != EAGAIN)
+      die("read");
+  }
+
+  return c;
+}
+
+/*** input ***/
+void editorProcessKeypress(void) {
+  char c = editorReadKey();
+
+  switch (c) {
+  case CTRL_KEY('q'):
+    exit(0);
+    break;
+  }
+}
+
 /*** init ***/
 int main(void) {
   enableRawMode();
@@ -151,25 +174,7 @@ int main(void) {
    * here we add when user press q, it will exit the program
    */
   while (1) {
-    char c = '\0';
-    if (read(STDIN_FILENO, &c, 1) == -1 && errno != EAGAIN)
-      die("read");
-
-    /*
-     * iscntrl() method comes from <ctype.h>
-     * it uses is to tests whether a character is a control character based on
-     * ASCII control characters are nonprintable character that we don't want to
-     * print to the screen. ASCII code 0-31 are all control characters, and 127
-     * is also a control character. ASCII code 32-126 are all printable.
-     */
-    if (iscntrl(c)) {
-      printf("%d\r\n", c);
-    } else {
-      printf("%d ('%c')\r\n", c, c);
-    }
-
-    if (c == CTRL_KEY('q'))
-      break;
+    editorProcessKeypress();
   }
   return 0;
 }
